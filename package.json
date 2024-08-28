@@ -1,0 +1,25 @@
+{
+  "name": "salesforce-requester",
+  "version": "1.0.0",
+  "description": "Salesforce API Rest Library for nodejs applications",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hiagofss/salesforce-requester.git"
+  },
+  "keywords": [
+    "salesforce",
+    "rest",
+    "api",
+    "sfdc"
+  ],
+  "author": "Hiago Souza",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hiagofss/salesforce-requester/issues"
+  },
+  "homepage": "https://github.com/hiagofss/salesforce-requester#readme"
+}
