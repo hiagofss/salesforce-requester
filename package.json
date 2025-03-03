@@ -7,7 +7,6 @@
   "scripts": {
     "lint": "prettier . --write",
     "test": "node test/tests.js",
-    "pretest": "npm run lint",
     "dev": "node --watch src/index.js"
   },
   "repository": {
