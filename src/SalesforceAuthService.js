@@ -1,10 +1,10 @@
 import qs from "qs";
 
 export class SalesforceAuthService {
-  org;
+  connectionConfig;
   constructor(
-    org = {
-      baseURL,
+    connectionConfig = {
+      instanceUrl,
       clientId,
       clientSecret,
       grantType,
@@ -13,53 +13,56 @@ export class SalesforceAuthService {
       password,
     },
   ) {
-    this.org = org;
+    this.connectionConfig = connectionConfig;
   }
 
   async getAccessToken() {
-    if (!this.org) {
-      throw new Error("Org not found");
+    if (!this.connectionConfig) {
+      throw new Error("connectionConfig not found");
     }
-    const responseAuth = await this.auth(this.org);
+    const responseAuth = await this.auth(this.connectionConfig);
 
     return responseAuth;
   }
 
-  async auth(org) {
+  async auth(connectionConfig) {
     let data;
-    switch (org.grantType) {
+    switch (connectionConfig.grantType) {
       case "password":
         data = qs.stringify({
           grant_type: "password",
-          client_id: org?.clientId,
-          client_secret: org?.clientSecret,
-          username: org?.username,
-          password: `${org?.password}${org?.secretToken}`,
+          client_id: connectionConfig?.clientId,
+          client_secret: connectionConfig?.clientSecret,
+          username: connectionConfig?.username,
+          password: `${connectionConfig?.password}${connectionConfig?.secretToken}`,
         });
         break;
       case "refresh_token":
         data = qs.stringify({
           grant_type: "refresh_token",
-          client_id: org?.clientId,
-          client_secret: org?.clientSecret,
-          refresh_token: org?.refreshToken,
+          client_id: connectionConfig?.clientId,
+          client_secret: connectionConfig?.clientSecret,
+          refresh_token: connectionConfig?.refreshToken,
         });
         break;
       case "client_credentials":
         data = qs.stringify({
           grant_type: "client_credentials",
-          client_id: org?.clientId,
-          client_secret: org?.clientSecret,
+          client_id: connectionConfig?.clientId,
+          client_secret: connectionConfig?.clientSecret,
         });
         break;
     }
 
     try {
-      const response = await fetch(`${org?.baseURL}/services/oauth2/token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: data,
-      });
+      const response = await fetch(
+        `${connectionConfig?.instanceUrl}/services/oauth2/token`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: data,
+        },
+      );
 
       const responseData = await response.json();
 

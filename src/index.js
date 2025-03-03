@@ -14,4 +14,4 @@ export function formatRequest(data) {
   return { ...data, timestamp: new Date().toISOString() };
 }
 
-export * from "./SalesforceAuthService.js";
+export * from "./SalesforceRequester.js";

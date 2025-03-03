@@ -2,7 +2,9 @@ import assert from "node:assert";
 import crypto from "node:crypto";
 import { beforeEach, test } from "node:test";
 
-import { SalesforceAuthService, helloNpm } from "../src/index.js";
+import { helloNpm, SalesforceRequester } from "../src/index.js";
+
+import { SalesforceAuthService } from "../src/SalesforceAuthService.js";
 
 globalThis.fetch = async (url, option) => {
   console.log("fetch", url, option);
@@ -12,7 +14,10 @@ globalThis.fetch = async (url, option) => {
       ok: true,
       status: 200,
       json: async () => {
-        return { access_token: generateRandomAccessToken(255) };
+        return {
+          access_token: generateRandomAccessToken(255),
+          instance_url: "https://login.salesforce.com",
+        };
       },
     };
   }
@@ -22,6 +27,63 @@ globalThis.fetch = async (url, option) => {
       status: 400,
       json: async () => {
         return { message: "Bad Request" };
+      },
+    };
+  }
+
+  if (
+    url ===
+    "https://login.salesforce.com/services/data/v62.0/query/?q=SELECT Id, Name FROM Account"
+  ) {
+    return {
+      status: 200,
+      ok: true,
+      json: async () => {
+        return {
+          totalSize: 3,
+          done: true,
+          records: [
+            {
+              attributes: {
+                type: "Account",
+                url: "/services/data/v58.0/sobjects/Account/001B000000UnQ2wIAF",
+              },
+              Id: "001B000000UnQ2wIAF",
+              Name: "Burlington Textiles Corp of America",
+              CreatedDate: "2017-08-18T14:46:22.000+0000",
+              LastModifiedDate: "2017-08-18T14:46:22.000+0000",
+              CreatedById: "005B0000003TOI6IAO",
+              LastModifiedById: "005B0000003TOI6IAO",
+              Type: "Customer - Direct",
+            },
+            {
+              attributes: {
+                type: "Account",
+                url: "/services/data/v58.0/sobjects/Account/001B000000UnQ2yIAF",
+              },
+              Id: "001B000000UnQ2yIAF",
+              Name: "Dickenson plc",
+              CreatedDate: "2017-08-18T14:46:22.000+0000",
+              LastModifiedDate: "2017-08-18T14:46:22.000+0000",
+              CreatedById: "005B0000003TOI6IAO",
+              LastModifiedById: "005B0000003TOI6IAO",
+              Type: "Customer - Channel",
+            },
+            {
+              attributes: {
+                type: "Account",
+                url: "/services/data/v58.0/sobjects/Account/001B000000UnQ2vIAF",
+              },
+              Id: "001B000000UnQ2vIAF",
+              Name: "Edge Communications",
+              CreatedDate: "2017-08-18T14:46:22.000+0000",
+              LastModifiedDate: "2017-08-18T14:46:22.000+0000",
+              CreatedById: "005B0000003TOI6IAO",
+              LastModifiedById: "005B0000003TOI6IAO",
+              Type: "Customer - Direct",
+            },
+          ],
+        };
       },
     };
   }
@@ -44,25 +106,41 @@ test("test Hello Module", () => {
 test("Auth tests", async (t) => {
   await t.test("Test successfull auth", async (t) => {
     const config = {
-      baseURL: "https://login.salesforce.com",
+      instanceUrl: "https://login.salesforce.com",
       clientId: "3MVG9d8..z.hDcPJZJ3zP4Z3",
       clientSecret: "3D3A",
       grantType: "client_credentials",
     };
     const connection = await new SalesforceAuthService(config).getAccessToken();
 
-    console.log(connection);
+    // console.log(connection);
   });
 
   await t.test("Test failed auth", async (t) => {
     const config = {
-      baseURL: "https://error.salesforce.com",
+      instanceUrl: "https://error.salesforce.com",
       clientId: "3MVG9d8..z.hDcPJZJ3zP4Z3",
       clientSecret: "3D3A",
       grantType: "client_credentials",
     };
     const connection = await new SalesforceAuthService(config).getAccessToken();
 
-    console.log(connection);
+    // console.log(connection);
   });
+});
+
+test("SalesforceRequester tests", async (t) => {
+  const connection = new SalesforceRequester({
+    instanceUrl: "https://login.salesforce.com",
+    clientId: "3MVG9d8..z.hDcPJZJ3zP4Z3",
+    clientSecret: "3D3A",
+    grantType: "client_credentials",
+  });
+
+  await connection.connect();
+
+  const dataService = await connection.dataService();
+
+  let data = await dataService.query("SELECT Id, Name FROM Account").execute();
+  console.log(data);
 });
